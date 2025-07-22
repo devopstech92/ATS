@@ -3,491 +3,574 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI-Powered ATS Resume Optimizer</title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Lucide Icons CDN -->
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <title>Resume Tailoring Tool</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
-        /* Custom styles for scrollbars and text wrapping */
-        textarea {
-            resize: vertical; /* Allow vertical resizing only */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
-        .scrollable-content {
-            overflow-y: auto;
-            max-height: 600px; /* Limit height for scrollable areas */
-            white-space: pre-wrap; /* Preserve whitespace and wrap text */
-            word-wrap: break-word; /* Break long words */
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
         }
-        /* Hide default file input button */
-        input[type="file"] {
-            display: none;
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
         }
-        /* Style for the custom file input label */
-        .custom-file-upload {
-            display: inline-block;
-            cursor: pointer;
-            padding: 0.75rem 1rem;
-            border-radius: 0.5rem;
-            background-color: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            color: rgba(255, 255, 255, 0.7);
-            transition: background-color 0.3s, border-color 0.3s;
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
+
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            padding: 40px;
+        }
+
+        .input-section {
+            margin-bottom: 30px;
+        }
+
+        .input-group {
+            margin-bottom: 25px;
+        }
+
+        .input-group label {
+            display: block;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+            font-size: 1.1rem;
+        }
+
+        .input-group input,
+        .input-group textarea {
             width: 100%;
-            justify-content: center;
+            padding: 15px;
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
+            font-size: 16px;
+            font-family: inherit;
+            transition: border-color 0.3s ease;
         }
-        .custom-file-upload:hover {
-            background-color: rgba(255, 255, 255, 0.2);
-            border-color: rgba(255, 255, 255, 0.3);
+
+        .input-group input:focus,
+        .input-group textarea:focus {
+            outline: none;
+            border-color: #4facfe;
+            box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.1);
+        }
+
+        .input-group textarea {
+            resize: vertical;
+            min-height: 200px;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-block;
+            text-decoration: none;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .loading .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #4facfe;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .result-section {
+            display: none;
+            margin-top: 30px;
+            padding: 30px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border: 1px solid #e9ecef;
+        }
+
+        .result-section h3 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.3rem;
+        }
+
+        .resume-preview {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            font-family: 'Times New Roman', serif;
+            line-height: 1.4;
+            font-size: 14px;
+            max-height: 600px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+        }
+
+        .resume-preview h1 {
+            font-size: 24px;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 10px;
+            color: #000;
+        }
+
+        .resume-preview h2 {
+            font-size: 16px;
+            font-weight: bold;
+            margin: 20px 0 10px 0;
+            color: #000;
+            text-transform: uppercase;
+        }
+
+        .resume-preview h3 {
+            font-size: 14px;
+            font-weight: bold;
+            margin: 15px 0 5px 0;
+            color: #000;
+        }
+
+        .resume-preview p {
+            margin-bottom: 8px;
+            text-align: justify;
+        }
+
+        .contact-info {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 12px;
+        }
+
+        .error {
+            background: #fff5f5;
+            color: #c53030;
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid #fed7d7;
+            margin-top: 15px;
+        }
+
+        .success {
+            background: #f0fff4;
+            color: #22543d;
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid #9ae6b4;
+            margin-top: 15px;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .btn {
+                width: 100%;
+                margin-bottom: 10px;
+            }
         }
     </style>
 </head>
-<body class="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 p-4 font-sans text-gray-800">
-    <div class="max-w-7xl mx-auto">
-        <!-- Header -->
-        <div class="text-center mb-8">
-            <h1 class="text-4xl font-bold text-white mb-2 flex items-center justify-center gap-3">
-                <i data-lucide="brain" class="text-purple-400" style="width: 40px; height: 40px;"></i>
-                AI-Powered ATS Resume Optimizer
-                <i data-lucide="sparkles" class="text-yellow-400" style="width: 32px; height: 32px;"></i>
-            </h1>
-            <p class="text-blue-200 text-lg">Powered by Google Gemini AI • Smart ATS Analysis • Real-time Optimization</p>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 AI Resume Tailoring Tool</h1>
+            <p>Create perfectly matched resumes using Gemini AI</p>
         </div>
 
-        <!-- API Key Section -->
-        <div id="apiKeySection" class="mb-6 bg-yellow-500/10 backdrop-blur-lg rounded-xl p-6 border border-yellow-400/20 hidden">
-            <div class="flex items-center gap-3 mb-4">
-                <i data-lucide="settings" class="text-yellow-400" style="width: 24px; height: 24px;"></i>
-                <h2 class="text-xl font-semibold text-white">Gemini API Configuration</h2>
-            </div>
-            <p class="text-white/80 mb-4">
-                Get your free Gemini API key from: <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:underline">Google AI Studio</a>
-            </p>
-            <div class="flex gap-3">
-                <input
-                    type="password"
-                    id="geminiApiKeyInput"
-                    placeholder="Enter your Gemini API key..."
-                    class="flex-1 p-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/60 focus:border-yellow-400 focus:outline-none"
-                />
-                <button
-                    id="saveApiKeyButton"
-                    class="px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors"
-                >
-                    Save
+        <div class="main-content">
+            <div class="input-section">
+                <div class="input-group">
+                    <label for="apiKey">Gemini API Key:</label>
+                    <input type="password" id="apiKey" placeholder="Enter your Gemini API key (get it from ai.google.dev)">
+                </div>
+
+                <div class="input-group">
+                    <label for="jobDescription">Job Description:</label>
+                    <textarea id="jobDescription" placeholder="Paste the complete job description here..."></textarea>
+                </div>
+
+                <button class="btn" onclick="tailorResume()">
+                    🚀 Generate Tailored Resume
                 </button>
             </div>
-        </div>
 
-        <!-- Error Display -->
-        <div id="errorDisplay" class="mb-6 bg-red-500/10 backdrop-blur-lg rounded-xl p-4 border border-red-400/20 flex items-center gap-3 hidden">
-            <i data-lucide="alert-circle" class="text-red-400" style="width: 24px; height: 24px;"></i>
-            <p id="errorMessage" class="text-red-300"></p>
-        </div>
-
-        <!-- Main Content Grid -->
-        <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
-            <!-- Job Description Input -->
-            <div class="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20">
-                <div class="flex items-center gap-3 mb-4">
-                    <i data-lucide="target" class="text-blue-300" style="width: 24px; height: 24px;"></i>
-                    <h2 class="text-xl font-semibold text-white">Job Description</h2>
-                </div>
-                <textarea
-                    id="jobDescriptionInput"
-                    class="w-full h-80 p-4 bg-white/5 border border-white/20 rounded-lg text-white placeholder-white/60 focus:border-blue-400 focus:outline-none resize-none text-sm"
-                    placeholder="Paste the complete job description here...The AI will automatically:✓ Extract job requirements and skills✓ Identify ATS keywords✓ Analyze technical requirements✓ Match your experience to job needs"
-                ></textarea>
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>AI is analyzing and tailoring your resume...</p>
             </div>
 
-            <!-- Resume Input -->
-            <div class="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20">
-                <div class="flex items-center gap-3 mb-4">
-                    <i data-lucide="file-text" class="text-green-300" style="width: 24px; height: 24px;"></i>
-                    <h2 class="text-xl font-semibold text-white">Your Resume</h2>
-                </div>
-                <div class="mb-4">
-                    <input type="file" id="resumeUploadInput" accept=".txt" />
-                    <label for="resumeUploadInput" class="custom-file-upload">
-                        <i data-lucide="upload" style="width: 20px; height: 20px;"></i>
-                        Upload Resume (.txt)
-                    </label>
-                </div>
-                <textarea
-                    id="resumeTextInput"
-                    class="w-full h-64 p-4 bg-white/5 border border-white/20 rounded-lg text-white placeholder-white/60 focus:border-green-400 focus:outline-none resize-none text-sm"
-                    placeholder="Or paste your current resume text here...Include all sections:• Contact Information• Professional Summary• Work Experience• Skills• Education• Certifications"
-                ></textarea>
+            <div class="result-section" id="resultSection">
+                <h3>✨ Your Tailored Resume:</h3>
+                <div class="resume-preview" id="resumePreview"></div>
+                <button class="btn btn-success" onclick="downloadPDF()">
+                    📄 Download PDF
+                </button>
             </div>
-
-            <!-- Results Section -->
-            <div class="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20">
-                <div class="flex items-center gap-3 mb-4">
-                    <i data-lucide="brain" class="text-purple-300" style="width: 24px; height: 24px;"></i>
-                    <h2 class="text-xl font-semibold text-white">AI Analysis</h2>
-                    <div id="matchPercentageDisplay" class="ml-auto flex items-center gap-2 bg-green-500/20 px-3 py-1 rounded-full hidden">
-                        <i data-lucide="percent" class="text-green-300" style="width: 16px; height: 16px;"></i>
-                        <span id="matchPercentageText" class="text-green-300 font-bold"></span>
-                    </div>
-                </div>
-                <div id="initialAnalysisMessage" class="text-center py-12 text-white/60">
-                    <i data-lucide="brain" class="mx-auto mb-4 text-white/40" style="width: 48px; height: 48px;"></i>
-                    <p class="text-lg mb-2">AI Ready for Analysis</p>
-                    <p class="text-sm">Provide job description and resume for intelligent optimization</p>
-                </div>
-                <div id="optimizationResults" class="space-y-4 hidden">
-                    <!-- ATS Scores -->
-                    <div id="atsScores" class="grid grid-cols-2 gap-3 mb-4"></div>
-                    <!-- Key Optimizations -->
-                    <div id="keyOptimizations" class="bg-white/5 p-4 rounded-lg hidden">
-                        <h3 class="text-white font-semibold mb-2 flex items-center gap-2">
-                            <i data-lucide="check-circle" class="text-green-400" style="width: 18px; height: 18px;"></i>
-                            AI Optimizations
-                        </h3>
-                        <ul id="optimizationsList" class="text-white/80 text-sm space-y-1"></ul>
-                    </div>
-                    <!-- Added Keywords -->
-                    <div id="addedKeywordsSection" class="bg-white/5 p-4 rounded-lg hidden">
-                        <h3 class="text-white font-semibold mb-2">Keywords Added</h3>
-                        <div id="addedKeywordsList" class="flex flex-wrap gap-2"></div>
-                    </div>
-                    <!-- Download Button -->
-                    <button
-                        id="downloadOptimizedResumeButton"
-                        class="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3 px-6 rounded-lg font-semibold flex items-center justify-center gap-3 hover:from-purple-700 hover:to-pink-700 transition-all duration-300"
-                    >
-                        <i data-lucide="download" class="text-white" style="width: 20px; height: 20px;"></i>
-                        Download Optimized Resume
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Optimize Button -->
-        <div class="mt-6 text-center">
-            <button
-                id="optimizeButton"
-                class="bg-gradient-to-r from-green-600 to-blue-600 text-white py-4 px-12 rounded-xl font-bold text-lg flex items-center justify-center gap-3 hover:from-green-700 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 mx-auto"
-            >
-                <i data-lucide="sparkles" class="text-yellow-300" style="width: 24px; height: 24px;"></i>
-                Optimize with Gemini AI
-            </button>
-        </div>
-
-        <!-- Job Analysis Results -->
-        <div id="jobAnalysisResults" class="mt-6 bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20 hidden">
-            <h2 class="text-xl font-semibold text-white mb-4 flex items-center gap-3">
-                <i data-lucide="eye" class="text-blue-300" style="width: 24px; height: 24px;"></i>
-                Job Analysis Results
-            </h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <div id="requiredSkillsContainer">
-                    <h3 class="text-white font-semibold mb-2">Required Skills</h3>
-                    <div id="requiredSkillsList" class="bg-white/5 p-3 rounded-lg h-32 overflow-y-auto"></div>
-                </div>
-                <div id="atsKeywordsContainer">
-                    <h3 class="text-white font-semibold mb-2">ATS Keywords</h3>
-                    <div id="atsKeywordsList" class="bg-white/5 p-3 rounded-lg h-32 overflow-y-auto"></div>
-                </div>
-                <div id="certificationsContainer">
-                    <h3 class="text-white font-semibold mb-2">Certifications</h3>
-                    <div id="certificationsList" class="bg-white/5 p-3 rounded-lg h-32 overflow-y-auto"></div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Optimized Resume Output -->
-        <div id="optimizedResumeOutputContainer" class="mt-6 bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20 hidden">
-            <h2 class="text-xl font-semibold text-white mb-4 flex items-center gap-3">
-                <i data-lucide="file-text" class="text-green-300" style="width: 24px; height: 24px;"></i>
-                Generated Tailored Resume
-            </h2>
-            <div id="optimizedResumeContent" class="prose max-w-none break-words whitespace-pre-wrap text-white scrollable-content"></div>
-        </div>
-
-        <!-- Footer -->
-        <div class="text-center mt-8 text-white/60">
-            <p>🤖 Powered by Google Gemini AI for intelligent resume optimization</p>
-            <button
-                id="toggleApiKeyButton"
-                class="mt-2 text-blue-400 hover:underline text-sm"
-            >
-                Configure API Settings
-            </button>
         </div>
     </div>
 
     <script>
-        // Initialize Lucide icons
-        document.addEventListener('DOMContentLoaded', () => {
-            lucide.createIcons();
-        });
+        // Base resume template
+        const baseResume = {
+            name: "MOHAMED IBRAHIM",
+            contact: "Email: devopstech1992@gmail.com | Phone: +20 102 397 7067 | Portfolio: devopstech92.github.io/MohamedIbrahim/ | Willing to Consider Remote, Hybrid, Relocation | Availability: Immediate",
+            experience: `PROFESSIONAL EXPERIENCE
+Senior Network Automation Engineer September 2021 – Present
+Self Employed - International Clients
+Designed and deployed scalable, secure access networks, achieving 20% cost reduction and improved operational efficiency through architecture optimization.
+Implemented AI-powered network automation frameworks using Python and ML, optimizing performance and reducing downtime by 15% with enhanced threat detection.
+Orchestrated multi-vendor interoperability solutions (Huawei, Cisco, ZTE), improving network efficiency by 25% and reducing operational overhead by 30%.
+Configured Wi-Fi mesh systems, ONTs, VDSL, CPEs, and TR-069 ACS, reducing troubleshooting by 30% and improving customer satisfaction.
+Developed custom network optimization scripts using Python and REST APIs, reducing latency by 10ms and enhancing end-user experience across international deployments.
+Conducted remote network audits for clients across 15+ countries, identifying bottlenecks and implementing Infrastructure as Code for 15% improved scalability.
+Upskilled in advanced network automation, cloud technologies, and DevOps, transitioning expertise into senior consulting roles.
 
-        // DOM Elements
-        const jobDescriptionInput = document.getElementById('jobDescriptionInput');
-        const resumeTextInput = document.getElementById('resumeTextInput');
-        const resumeUploadInput = document.getElementById('resumeUploadInput');
-        const optimizeButton = document.getElementById('optimizeButton');
-        const errorDisplay = document.getElementById('errorDisplay');
-        const errorMessage = document.getElementById('errorMessage');
-        const apiKeySection = document.getElementById('apiKeySection');
-        const geminiApiKeyInput = document.getElementById('geminiApiKeyInput');
-        const saveApiKeyButton = document.getElementById('saveApiKeyButton');
-        const toggleApiKeyButton = document.getElementById('toggleApiKeyButton');
-        const initialAnalysisMessage = document.getElementById('initialAnalysisMessage');
-        const optimizationResults = document.getElementById('optimizationResults');
-        const atsScores = document.getElementById('atsScores');
-        const optimizationsList = document.getElementById('optimizationsList');
-        const addedKeywordsList = document.getElementById('addedKeywordsList');
-        const keyOptimizationsSection = document.getElementById('keyOptimizations');
-        const addedKeywordsSection = document.getElementById('addedKeywordsSection');
-        const downloadOptimizedResumeButton = document.getElementById('downloadOptimizedResumeButton');
-        const matchPercentageDisplay = document.getElementById('matchPercentageDisplay');
-        const matchPercentageText = document.getElementById('matchPercentageText');
-        const jobAnalysisResults = document.getElementById('jobAnalysisResults');
-        const requiredSkillsList = document.getElementById('requiredSkillsList');
-        const atsKeywordsList = document.getElementById('atsKeywordsList');
-        const certificationsList = document.getElementById('certificationsList');
-        const optimizedResumeOutputContainer = document.getElementById('optimizedResumeOutputContainer');
-        const optimizedResumeContent = document.getElementById('optimizedResumeContent');
+Access Layer Network Engineer March 2019 – September 2021
+Leading Internet Service Provider - Egypt
+Architected and validated GPON, MSAN, and last-mile solutions using Huawei, ZTE, and Nokia platforms, ensuring market readiness and design compliance for 21 new product launches.
+Led benchmark testing and firmware customization with 20+ vendor R&D teams, optimizing device performance and compatibility by 80% through strategic upgrades.
+Enhanced service uptime and reliability by 60% through CPE deployment and proactive monitoring across 50+ locations.
+Increased network throughput by 35% via efficient lab-to-field integration and automated deployment, streamlining procedures.
+Facilitated cross-functional coordination among technical teams, customer service, and vendor engineering, delivering seamless solutions for 11+ million subscribers.
+Oversaw Wi-Fi mesh, VDSL router, and ONT rollout across 12 new regions, prioritizing end-user experience and operational efficiency with a 95% deployment success rate.
 
-        let geminiApiKey = ''; // This will store the API key
-        let currentOptimizedResumeData = null; // To hold the full optimization response for download
+Retail Technical Support Specialist January 2017 – February 2019
+Leading Internet service Provider - Egypt
+Provided hands-on technical support and equipment configuration, reducing repeat customer contacts by 25% through in-person guidance.
+Maintained high customer satisfaction via direct problem resolution and technical consultation.
+Trained and mentored 14 junior engineers, improving internal ticket flow efficiency by 35%.
 
-        // Static parts of the resume
-        const staticResumeTop = `
-# MOHAMED IBRAHIM
-Email: devopstech1992@gmail.com | Phone: +20 102 397 7067 | Portfolio: devopstech92.github.io/MohamedIbrahim/ | Willing to Consider Remote, Hybrid, Relocation | Availability: Immediate
+Technical Support Specialist and Team Lead May 2014 – December 2016
+Leading Internet service Provider - Egypt
+Diagnosed and resolved complex L1/L2 connectivity issues (DSL, fiber, Wi-Fi), achieving a 96% first-contact resolution rate.
+Analyzed 30,000+ support tickets, providing data-driven insights for firmware and service delivery improvements.
+Maintained 92%+ customer satisfaction and established contact center best practices.`,
+            achievements: `KEY ACHIEVEMENTS
+Pioneered network automation for 8M+ devices, improving ISP network performance by 25%.
+Reduced critical network downtime by 20% by implementing AI-driven automation and predictive maintenance frameworks.
+Achieved 92% first-contact resolution in complex technical support, enhancing customer satisfaction across 40K+ tickets.
+Led cross-functional teams, optimizing network efficiency by 35% through multi-vendor integration strategies.
+Managed network infrastructure for 11M+ subscribers, maintaining 90% uptime across 70 deployment sites.`,
+            projects: `KEY TECHNICAL PROJECTS
+AI-Driven Network Automation Platform
+Pioneered network automation for 8M+ devices, improving ISP network performance by 25%.
+Reduced critical network downtime by 20% by implementing AI-driven automation and predictive maintenance frameworks.
+Achieved 92% first-contact resolution in complex technical support, enhancing customer satisfaction across 40K+ tickets.
+Led cross-functional teams, optimizing network efficiency by 35% through multi-vendor integration strategies.
+Managed network infrastructure for 11M+ subscribers, maintaining 90% uptime across 70 deployment sites.
 
----
-`;
+Multi-Vendor GPON Integration and Standardization
+Led integration of Huawei, ZTE, and Nokia GPON platforms across 3 regional network expansions.
+Supported 2M+ subscribers through integrated platform deployment.
+Developed standardized configuration templates and automation scripts using Ansible and Python.
+Accelerated GPON OLT and ONT deployment, reducing initial time by 40%.
+Improved network efficiency by 25% and reduced deployment costs by 10% for new GPON service areas.
+Implemented streamlined provisioning workflows, enhancing operational efficiency.
 
-        const staticResumeBottom = `
----
+Enterprise Wi-Fi Mesh Optimization and Deployment
+Designed and implemented large-scale Wi-Fi mesh networks for enterprise clients.
+Supported 50+ simultaneous users per access point with seamless roaming.
+Utilized Python scripts for advanced channel planning, band steering, and load balancing.
+Optimized performance in complex RF environments through advanced configuration management.
+Achieved 90%+ uptime and improved user experience across 70+ deployment sites.
+Achieved 95% client retention and significant contract renewals.`,
+            education: `EDUCATION
+Bachelor of Engineering (B.Eng) in Electronics and Communications September 2008 - September 2013
+GEI Institute Cairo, Egypt
+Graduation Project: Developed an automated testing tool that evaluated and optimized 2G/3G mobile network performance in laboratory environments.`,
+            certifications: `CERTIFICATIONS AND PROFESSIONAL DEVELOPMENT
+ITIL v4 IT Service Management Framework (2022).
+Network Automation and Programmability: Python, Ansible, REST APIs (2021).
+Wi-Fi Optimization, Heat Mapping and Network Design (2021).
+Cisco Networking Technologies: Advanced Routing, Switching, Network Architecture (2020).
+Fiber Optic GPON/XGPON Technologies and Implementation (2019).
+Certified Ethical Hacker (CEH): Network Security and Penetration Testing (2020).
+Infrastructure as Code and Cloud Migration Strategies (2022).`,
+            additional: `ADDITIONAL INFORMATION
+Languages: English (Fluent), Arabic (Native).
+Security Clearance: Available upon request.
+Travel: Available for international assignments and roles abroad.
+Time Zone Flexibility: UTC+2 (Cairo) | Remote work across multiple time zones.`
+        };
 
-## Professional Experience
+        let tailoredResume = null;
 
-**Senior Network Automation Engineer** | Self Employed - International Clients | September 2021 – Present
-* Designed and deployed scalable, secure access networks, achieving 20% cost reduction and improved operational efficiency through architecture optimization, including network segmentation (VRFs, VLANs).
-* Implemented AI-powered network automation frameworks using Python and ML, optimizing performance and reducing downtime by 15% with enhanced threat detection.
-* Orchestrated multi-vendor interoperability solutions (Huawei, Cisco, ZTE), improving network efficiency by 25% and reducing operational overhead by 30%, ensuring proper route redistribution and protocol interoperability.
-* Configured enterprise Wi-Fi mesh systems, ONTs, VDSL, CPEs, and TR-069 ACS, reducing troubleshooting by 30% and improving customer satisfaction, including RF planning and optimization, Wi-Fi 5/6/6E standards, 802.1x authentication, and guest network segmentation.
-* Developed custom network optimization scripts using Python and REST APIs, reducing latency by 10ms and enhancing end-user experience across international deployments.
-* Conducted remote network audits for clients across 15+ countries, identifying bottlenecks and implementing Infrastructure as Code for 15% improved scalability.
-* Upskilled in advanced network automation, cloud technologies, and DevOps, transitioning expertise into senior consulting roles.
+        async function tailorResume() {
+            const apiKey = document.getElementById('apiKey').value.trim();
+            const jobDescription = document.getElementById('jobDescription').value.trim();
 
-**Access Layer Network Engineer** | Leading Internet Service Provider - Egypt | March 2019 – September 2021
-* Architected and validated GPON, MSAN, and last-mile solutions using Huawei, ZTE, and Nokia platforms, ensuring market readiness and design compliance for 21 new product launches.
-* Led benchmark testing and firmware customization with 20+ vendor R&D teams, optimizing device performance and compatibility by 80% through strategic upgrades.
-* Enhanced service uptime and reliability by 60% through CPE deployment and proactive monitoring across 50+ locations.
-* Increased network throughput by 35% via efficient lab-to-field integration and automated deployment, streamlining procedures.
-* Facilitated cross-functional coordination among technical teams, customer service, and vendor engineering, delivering seamless solutions for 11+ million subscribers.
-* Oversaw Wi-Fi mesh, VDSL router, and ONT rollout across 12 new regions, prioritizing end-user experience and operational efficiency with a 95% deployment success rate, including 802.1x authentication and guest network segmentation.
-
-**Retail Technical Support Specialist** | Leading Internet Service Provider - Egypt | January 2017 – February 2019
-* Provided hands-on technical support and equipment configuration, reducing repeat customer contacts by 25% through in-person guidance.
-* Maintained high customer satisfaction via direct problem resolution and technical consultation.
-* Trained and mentored 14 junior engineers, improving internal ticket flow efficiency by 35%.
-
-**Technical Support Specialist and Team Lead** | Leading Internet Service Provider - Egypt | May 2014 – December 2016
-* Diagnosed and resolved complex L1/L2 connectivity issues (DSL, fiber, Wi-Fi), achieving a 96% first-contact resolution rate.
-* Analyzed 30,000+ support tickets, providing data-driven insights for firmware and service delivery improvements.
-* Maintained 92%+ customer satisfaction and established contact center best practices.
-
----
-
-## Key Technical Projects
-
-**AI-Driven Network Automation Platform**
-* Pioneered network automation for 8M+ devices, improving ISP network performance by 25%.
-* Reduced critical network downtime by 20% by implementing AI-driven automation and predictive maintenance frameworks.
-* Achieved 92% first-contact resolution in complex technical support, enhancing customer satisfaction across 40K+ tickets.
-* Led cross-functional teams, optimizing network efficiency by 35% through multi-vendor integration strategies.
-* Managed network infrastructure for 11M+ subscribers, maintaining 90% uptime across 70 deployment sites.
-
-**Multi-Vendor GPON Integration and Standardization**
-* Led integration of Huawei, ZTE, and Nokia GPON platforms across 3 regional network expansions.
-* Supported 2M+ subscribers through integrated platform deployment.
-* Developed standardized configuration templates and automation scripts using Ansible and Python.
-* Accelerated GPON OLT and ONT deployment, reducing initial time by 40%.
-* Improved network efficiency by 25% and reduced deployment costs by 10% for new GPON service areas.
-* Implemented streamlined provisioning workflows, enhancing operational efficiency.
-
-**Enterprise Wi-Fi Mesh Optimization and Deployment**
-* Designed and implemented large-scale Wi-Fi mesh networks for enterprise clients.
-* Supported 50+ simultaneous users per access point with seamless roaming.
-* Utilized Python scripts for advanced channel planning, band steering, and load balancing.
-* Optimized performance in complex RF environments through advanced configuration management and spectrum analysis.
-* Achieved 90%+ uptime and improved user experience across 70+ deployment sites.
-* Achieved 95% client retention and significant contract renewals.
-
----
-
-## Education
-
-**Bachelor of Engineering (B.Eng) in Electronics and Communications** | GEI Institute, Cairo, Egypt | September 2008 - September 2013
-* Graduation Project: Developed an automated testing tool that evaluated and optimized 2G/3G mobile network performance in laboratory environments.
-
----
-
-## Certifications and Professional Development
-
-* **CCNP Enterprise** or **CCIE** (Routing & Switching or Enterprise Infrastructure) - *Please specify if you hold these or similar.*
-* **PCNSE** (Palo Alto Certified Network Security Engineer) - *Please specify if you hold this.*
-* **CWNA / CWNP** or vendor-specific Wi-Fi certifications (e.g., Cisco Wireless Specialist) - *Please specify if you hold these.*
-* ITIL v4 IT Service Management Framework (2022)
-* Network Automation and Programmability: Python, Ansible, REST APIs (2021)
-* Wi-Fi Optimization, Heat Mapping and Network Design (2021)
-* Cisco Networking Technologies: Advanced Routing, Switching, Network Architecture (2020)
-* Fiber Optic GPON/XGPON Technologies and Implementation (2019)
-* Certified Ethical Hacker (CEH): Network Security and Penetration Testing (2020)
-* Infrastructure as Code and Cloud Migration Strategies (2022)
-
----
-
-## Additional Information
-
-* **Languages:** English (Fluent), Arabic (Native)
-* **Security Clearance:** Available upon request
-* **Travel:** Available for international assignments and roles abroad
-* **Time Zone Flexibility:** UTC+2 (Cairo) | Remote work across multiple time zones
-`;
-
-        // Your current resume sections to be used as a base for tailoring
-        const currentProfessionalSummary = `Highly skilled and results-driven Senior Network Engineer with 10 years of experience in designing, implementing, and maintaining complex enterprise networks across **Cisco and Palo Alto platforms**. Proven expertise in **dynamic routing (BGP/OSPF)**, **network segmentation**, and **enterprise Wi-Fi infrastructure**. Specializes in Network Programmability, NetDevOps, and Infrastructure as Code. Adept at **strong troubleshooting** and **incident response** under pressure, **excellent written and verbal communication** for technical documentation and team collaboration, and able to work **independently, accountably, and prioritize** across multiple projects and incidents.`;
-
-        const currentTechnicalSkills = `
-**Network Architecture & Infrastructure:**
-* **Design & Planning:** Enterprise Network Design, Service Provider Networks, Data Center Networking, Network Planning & Optimization, Hybrid Cloud, Resiliency, Network Hardening.
-* **Availability & Scaling:** High Availability (HA) designs for routing/firewalls (including failover validation), Disaster Recovery (DR), Load Balancing, Redundancy.
-* **Segmentation & Control:** Network Segmentation (Micro-Segmentation, Security Zones), Virtual Networking, Network Access Management, Data Plane, Control Plane.
-* **Modern Concepts:** SD-WAN, SDN, Infrastructure as Code (IaC), Cloud Migration, DDI (DNS, DHCP, IPAM).
-
-**Routing & Switching Protocols:**
-* **Core Routing:** OSPF (single/multi-area), BGP (iBGP, eBGP, route-maps, communities, path selection), EIGRP, ISIS, RIP.
-* **Layer 2 & 3 Technologies:** VLANs, STP, RSTP, MSTP, EtherChannel, Link Aggregation, VRFs, IPsec/GRE tunnels.
-* **Advanced Routing & Switching:** MPLS, L2VPN, L3VPN, Traffic Engineering, VxLAN, HSRP, VRRP, GLBP, VRF.
-* **Fundamental Protocols:** TCP/IP, IPv4/IPv6, PPPoE, IGMP Snooping, NAT.
-* **Interoperability:** Route redistribution and protocol interoperability between devices and domains.
-
-**Network Automation & Programmability:**
-* **Programming & Scripting:** Python, Ansible, Bash, PowerShell, Perl, PHP, C++, C#, GoLang, SQL.
-* **Automation Frameworks:** Ansible, Terraform, Puppet, Chef.
-* **APIs & Data Models:** REST APIs, NETCONF, RESTCONF, JSON, YAML, XML, SNMP, TR-069.
-* **Version Control:** Git, GitHub.
-* **Concepts & Tools:** Custom Test Scripting, SDN, NFV, SD-WAN, Docker, Kubernetes, VM Management, Cloud-Native Networks, NetDevOps, Postman (API Testing), Orchestration, Configuration Management.
-
-**Access & Wireless Technologies:**
-* **Fiber & Last Mile:** GPON, XGPON, MSAN, DSLAM, FTTx, Triple-Play Service Delivery, ONT, ONU, Last-Mile Solutions.
-* **Wireless Standards & Design:** Enterprise Wi-Fi infrastructure (Cisco Wireless, Aruba), Wi-Fi (802.11 a/b/g/n/ac/ax/be, Wi-Fi 5/6/6E), Mesh Networks, Dual-Band, Channel Planning, Band Steering, RF Planning & Design, Site Surveys (Passive, Active), AP placement, Ekahau.
-* **Wireless Security & Management:** Wireless Authentication (WPA2/3, EAP, 802.1X, RADIUS), Guest Network Segmentation, Spectrum Analysis (interference, roaming, AP load), Wireless Performance Optimization.
-* **Mobile:** 4G/5G Infrastructure, ITU/IEEE Standards.
-
-**Network Security & Compliance:**
-* Vulnerability Assessment, Threat Detection & Mitigation, Network Hardening, Penetration Testing, Ethical Hacking, Access Control, Data Privacy, Firewalls (Palo Alto PAN-OS, Virtual Routers, Static/Dynamic Routing, Security Zones, NAT, Panorama), VPNs, IDS/IPS, TACACS+, DDoS Mitigation.
-
-**Vendor Platforms & Monitoring Tools:**
-* **Cisco:** IOS, IOS-XE, IOS-XR, Catalyst (Switches), Nexus (Switches), ISR/ASR (Routers), DNA Center (SD-Access, Network Assurance), CML, GNS3, ACI, Meraki, Wireless LAN Controllers (WLCs), Firepower, UCS, Packet Tracer, Cisco Prime.
-* **Huawei:** MA5600T, MA5800, U2000.
-* **ZTE:** C300, C320.
-* **Nokia:** ISAM, AirScale, NetAct.
-* **Juniper:** Junos, SRX, Routers, Switches.
-* **Fortinet:** FortiGate, FortiAnalyzer, FortiManager.
-* **Palo Alto:** Networks Firewalls (PAN-OS), Panorama.
-* **F5:** BIG-IP (LTM, GTM).
-* **Aruba:** Wireless, Switches.
-* **Ruckus:** Wireless.
-* **Other Hardware:** MikroTik, HP, HPE, Arista, Brocade.
-* **Virtualization:** VMware vSphere, ESXi, NSX, Openstack, Hyper-V.
-* **Operating Systems:** Linux, Unix, Windows Server, Windows OS.
-* **Monitoring & Analysis:** Wireshark (packet captures analysis), UNMS, Spectrum Analyzers, Optical Power Meters, OTDRs.
-
-**Cloud & Optical Vendor-Specific Features:**
-* **Cisco:** ACI Multi-Site, EVPN-VXLAN, SD-Access fabric.
-* **AWS:** Transit Gateway, Direct Connect, CloudWAN.
-* **Azure:** Virtual WAN, ExpressRoute, Azure Firewall Manager.
-* **Google Cloud:** Network Intelligence Center, Cloud Interconnect.
-* **Optical Networking:** DWDM, ROADM, Coherent Optics.
-`;
-
-        const currentSoftSkills = `
-* **Troubleshooting & Incident Response:** Expert in diagnosing and resolving complex network and connectivity issues across Layer 2/3 and Layer 7 firewalls, analyzing packet captures and routing tables under outage or failover scenarios, and providing strong incident response capabilities under pressure.
-* **Communication:** Excellent written and verbal communication for technical documentation (network diagrams, as-builts, configuration templates, runbooks) and effective team collaboration.
-* **Leadership & Accountability:** Proven ability to lead network projects, mentor junior engineers, prioritize across multiple projects and incidents, and take independent ownership of tasks.
-* **Critical Thinking:** Strong analytical skills to evaluate network architectures, identify potential risks, and propose strategic improvements.
-* **Adaptability:** Quick to learn and implement new technologies and methodologies in a rapidly evolving IT landscape.
-* **Teamwork & Collaboration:** Effective collaborator, working seamlessly with cross-functional teams including security, cloud, and application owners to achieve common goals.
-`;
-
-        // Function to display errors
-        function showError(message) {
-            errorMessage.textContent = message;
-            errorDisplay.classList.remove('hidden');
-        }
-
-        // Function to hide errors
-        function hideError() {
-            errorDisplay.classList.add('hidden');
-            errorMessage.textContent = '';
-        }
-
-        // Call Gemini AI API
-        async function callGeminiAPI(prompt) {
-            if (!geminiApiKey) {
-                throw new Error('Gemini API key is not set. Please configure it.');
+            // Input validation
+            if (!apiKey) {
+                showError('Please enter your Gemini API key. Get one free at ai.google.dev');
+                return;
             }
-            const payload = {
-                contents: [{ parts: [{ text: prompt }] }],
-                generationConfig: {
-                    temperature: 0.1,
-                    topK: 1,
-                    topP: 1,
-                    maxOutputTokens: 4096,
-                }
-            };
-
-            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiApiKey}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(`Gemini API Error: ${response.status} - ${errorData.error?.message || response.statusText}`);
-            }
-
-            const data = await response.json();
-            if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
-                throw new Error('Invalid response from Gemini API');
-            }
-            return data.candidates[0].content.parts[0].text;
-        }
-
-        // Main optimization logic
-        async function handleOptimize() {
-            hideError();
-            const jobDescription = jobDescriptionInput.value.trim();
-            const resumeText = resumeTextInput.value.trim();
 
             if (!jobDescription) {
-                showError('Please paste a job description first!');
-                return;
-            }
-            if (!resumeText) {
-                showError('Please paste your current resume text!');
-                return;
-            }
-            if (!geminiApiKey) {
-                apiKeySection.classList.remove('hidden');
-                showError('Please enter your Gemini API key!');
+                showError('Please paste the job description.');
                 return;
             }
 
-            optimizeButton.disabled = true;
-            optimizeButton.innerHTML = `<div class="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div> AI is Analyzing & Optimizing...`;
-            initialAnalysisMessage.classList.remove('hidden'); // Show initial message while processing
-            optimizat
+            // Show loading
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('resultSection').style.display = 'none';
+            clearMessages();
+
+            try {
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        contents: [{
+                            parts: [{
+                                text: `You are an expert ATS optimization specialist. I need you to tailor my resume to achieve 100% keyword match with this job description.
+
+JOB DESCRIPTION:
+${jobDescription}
+
+MY BASE RESUME:
+${JSON.stringify(baseResume, null, 2)}
+
+INSTRUCTIONS:
+1. Extract the job title from the job description
+2. Rewrite ONLY the Professional Summary section to perfectly match the job requirements
+3. Extract ALL technical skills, soft skills, and hard skills mentioned in the job description
+4. Create a comprehensive Technical Skills section that includes every skill mentioned in the job description using the EXACT same terminology
+5. Keep ALL other sections (contact, experience, achievements, projects, education, certifications) EXACTLY the same
+6. Ensure the summary uses power words and quantifiable achievements that align with the job requirements
+7. Make sure to include every keyword and skill mentioned in the job description
+
+RESPONSE FORMAT (respond with valid JSON only):
+{
+  "jobTitle": "exact job title from description",
+  "summary": "tailored professional summary (3-4 sentences max)",
+  "technicalSkills": "comprehensive technical skills section with ALL skills from job description organized by categories"
+}
+
+Respond with ONLY the JSON object, no other text.`
+                            }]
+                        }]
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`API Error: ${response.status}`);
+                }
+
+                const data = await response.json();
+                const aiResponse = data.candidates[0].content.parts[0].text;
+
+                // Clean up the response and parse JSON
+                let cleanResponse = aiResponse.replace(/```json\s*/, '').replace(/```\s*$/, '').trim();
+                
+                try {
+                    const tailoredData = JSON.parse(cleanResponse);
+                    
+                    // Create the tailored resume
+                    tailoredResume = {
+                        jobTitle: tailoredData.jobTitle || 'Network Engineer',
+                        summary: tailoredData.summary,
+                        technicalSkills: tailoredData.technicalSkills
+                    };
+
+                    displayResume();
+                    showSuccess('Resume successfully tailored! Review the output and download as PDF.');
+
+                } catch (parseError) {
+                    console.error('Parse error:', parseError);
+                    throw new Error('Invalid response format from AI. Please try again.');
+                }
+
+            } catch (error) {
+                console.error('Error:', error);
+                showError('Failed to generate tailored resume: ' + error.message);
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+            }
+        }
+
+        function displayResume() {
+            const preview = document.getElementById('resumePreview');
+            
+            const resumeHTML = `
+                <h1>${baseResume.name}</h1>
+                <div class="contact-info">
+                    ${baseResume.contact}
+                </div>
+                
+                <h2>PROFESSIONAL SUMMARY</h2>
+                <p>${tailoredResume.summary}</p>
+                
+                <h2>${baseResume.experience.split('\n')[0]}</h2>
+                ${baseResume.experience.split('\n').slice(1).map(line => 
+                    line.trim() ? (line.includes('Self Employed') || line.includes('Leading Internet') ? 
+                        `<h3>${line}</h3>` : `<p>${line}</p>`) : ''
+                ).join('')}
+                
+                <h2>${baseResume.achievements.split('\n')[0]}</h2>
+                ${baseResume.achievements.split('\n').slice(1).map(line => 
+                    line.trim() ? `<p>• ${line}</p>` : ''
+                ).join('')}
+                
+                <h2>TECHNICAL SKILLS</h2>
+                <div>${tailoredResume.technicalSkills}</div>
+                
+                <h2>${baseResume.projects.split('\n')[0]}</h2>
+                ${baseResume.projects.split('\n').slice(1).map(line => 
+                    line.trim() ? (line.match(/^[A-Z].+Platform$|Integration$|Deployment$/)) ? 
+                        `<h3>${line}</h3>` : `<p>${line}</p>` : ''
+                ).join('')}
+                
+                <h2>${baseResume.education.split('\n')[0]}</h2>
+                ${baseResume.education.split('\n').slice(1).map(line => 
+                    line.trim() ? `<p>${line}</p>` : ''
+                ).join('')}
+                
+                <h2>${baseResume.certifications.split('\n')[0]}</h2>
+                ${baseResume.certifications.split('\n').slice(1).map(line => 
+                    line.trim() ? `<p>• ${line}</p>` : ''
+                ).join('')}
+                
+                <h2>${baseResume.additional.split('\n')[0]}</h2>
+                ${baseResume.additional.split('\n').slice(1).map(line => 
+                    line.trim() ? `<p>${line}</p>` : ''
+                ).join('')}
+            `;
+            
+            preview.innerHTML = resumeHTML;
+            document.getElementById('resultSection').style.display = 'block';
+        }
+
+        function downloadPDF() {
+            if (!tailoredResume) {
+                showError('No resume to download. Please generate a tailored resume first.');
+                return;
+            }
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            const content = document.getElementById('resumePreview').innerText;
+            const fileName = `MOHAMED IBRAHIM ${tailoredResume.jobTitle.toUpperCase()} RESUME.pdf`;
+            
+            // Split content into lines and add to PDF
+            const lines = doc.splitTextToSize(content, 180);
+            let y = 20;
+            const lineHeight = 6;
+            const pageHeight = 280;
+            
+            for (let i = 0; i < lines.length; i++) {
+                if (y > pageHeight) {
+                    doc.addPage();
+                    y = 20;
+                }
+                doc.text(lines[i], 15, y);
+                y += lineHeight;
+            }
+            
+            doc.save(fileName);
+            showSuccess(`PDF downloaded as: ${fileName}`);
+        }
+
+        function showError(message) {
+            clearMessages();
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error';
+            errorDiv.textContent = message;
+            document.querySelector('.main-content').appendChild(errorDiv);
+        }
+
+        function showSuccess(message) {
+            clearMessages();
+            const successDiv = document.createElement('div');
+            successDiv.className = 'success';
+            successDiv.textContent = message;
+            document.querySelector('.main-content').appendChild(successDiv);
+        }
+
+        function clearMessages() {
+            const existing = document.querySelectorAll('.error, .success');
+            existing.forEach(el => el.remove());
+        }
+
+        // Save API key to localStorage
+        document.getElementById('apiKey').addEventListener('input', function() {
+            localStorage.setItem('gemini_api_key', this.value);
+        });
+
+        // Load saved API key
+        window.addEventListener('load', function() {
+            const savedKey = localStorage.getItem('gemini_api_key');
+            if (savedKey) {
+                document.getElementById('apiKey').value = savedKey;
+            }
+        });
+    </script>
+</body>
+</html>
